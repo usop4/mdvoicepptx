@@ -169,3 +169,15 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# add by me
+
+config.env
+.DS_Store
+test_*.py
+*.log
+*.png
+*.pptx
+/scenario
+/material
+/cache
