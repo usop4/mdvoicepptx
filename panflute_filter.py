@@ -1,4 +1,4 @@
-#!/Users/user/Documents/hangul/.venv/bin/python3
+#!/Users/user/Documents/hangul/myenv/bin/python3
 
 import panflute as pf
 import csv
