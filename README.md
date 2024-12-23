@@ -16,6 +16,19 @@
 pip install -r requirements.txt
 ```
 
+### macOS
+
+```sh
+brew install pandoc
+```
+
+### Linux (Debian/Ubuntu)
+
+```sh
+sudo apt-get install pandoc
+```
+
+
 ## 使い方
 
 ### 音声ファイルの生成
