@@ -181,3 +181,4 @@ test_*.py
 /scenario
 /material
 /cache
+/myenv

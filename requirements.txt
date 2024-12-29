@@ -1,2 +1,9 @@
 icecream
 panflute
+langchain_ollama
+python-dotenv
+openai
+pydub
+librosa
+soundfile
+numpy
