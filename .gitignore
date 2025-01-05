@@ -178,6 +178,7 @@ test_*.py
 *.log
 *.png
 *.pptx
+*.xlsm
 /scenario
 /material
 /cache
