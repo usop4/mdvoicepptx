@@ -42,12 +42,11 @@ def make_comment(s,model_type):
         llm = model_init(model_type)
 
         system_message = """
-この韓国語の文を１〜５単語程度で区切って、韓国語と日本語をそれぞれをコンパクトに解説してください。
-解説には数字やカッコ、ハイフン、コロンは付けないでください。
+この韓国語の文を２〜５センテンス程度で区切って、それぞれをコンパクトに解説してください。
+出力は出力例のように書いてください。カッコや数字、ハイフン、箇条書きは不要です。
 
-* 出力の例
-살짝 少し
-웜톤으로 暖かい色調で  
+* 出力例
+살짝 웜톤으로 少し暖かい色調で  
 보이면서 見えながら  
 아무래도 やはり 
 예뻐 보이고 きれいに見える
@@ -61,9 +60,6 @@ def make_comment(s,model_type):
         with open(fname, 'w', encoding='utf-8') as file:
             file.write(ai_msg.content)
         return ai_msg.content
-
-def make_comment_test(s,model_type):
-    return ">>"+s
 
 def is_korean(text):
     for char in text:
@@ -90,7 +86,7 @@ def insert_space(text):
     lines = [" " + line for line in lines]
     return '\n'.join(lines)
 
-def command(lang="ko", model="ollama"):
+def command(lang="ko", model="openai"):
     print(f"lang={lang}, model={model}")
 
     temp = ""
