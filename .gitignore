@@ -175,11 +175,14 @@ cython_debug/
 config.env
 .DS_Store
 test_*.py
+*.bak
 *.log
 *.png
 *.pptx
+*.csv
 *.xlsm
 /scenario
 /material
 /cache
 /myenv
+/.vscode
