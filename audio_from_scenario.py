@@ -31,6 +31,13 @@ def make_safe_slow_fname(text):
     safe_text = safe_text.replace('\n', '_').replace('\r', '_')
     return "cache/" + f"{safe_text}" + "_slow.mp3"
 
+def is_korean(text):
+    for char in text:
+        # Check if the character is in the Hangul unicode range
+        if '\uAC00' <= char <= '\uD7A3':
+            return True
+    return False
+
 def openai_tts(text,voice):
 
     fname = make_safe_fname(text)
@@ -63,26 +70,41 @@ def command(fire=False):
     voice = "alloy" # alloy, echo, fable, onyx, nova, and shimmer
     file_path = "scenario.md"
     # all = AudioSegment.silent(duration=500)
-    all =  AudioSegment.from_file("material/決定ボタンを押す3.mp3", format="mp3")
+    audio =  AudioSegment.from_file("material/決定ボタンを押す3.mp3", format="mp3")
+    alen = len(audio)
+    duration = 1875 - alen
+    silence = AudioSegment.silent(duration=duration)            
+    all = audio + silence
 
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             for i, line in enumerate(file, start=1):
-
+                  
                 if line.startswith(" "):
                     pass
 
-                elif line.startswith("#") or line.startswith("pause:"):
-                    audio = AudioSegment.silent(duration=3000)
+                elif is_korean(line) is False:
+                    pass
+
+                #elif line.startswith("#") or line.startswith("pause:"):
+                #    #audio = AudioSegment.silent(duration=3000)
+                #    pass
 
                 elif line.startswith("voice:"):
                     voice = line.split(":", 1)[1].strip()
+                    ic(voice)
 
                 elif len(line.strip()) > 0:
-                    audio = openai_tts(line,voice)
+                    audio = openai_tts(line,voice)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
                     alen = len(audio)
-                    silence = AudioSegment.silent(
-                        duration=1000 * (alen/1000) - alen + 1000) # 2秒ごとに次の音が始まる
+
+                    if alen * 2 < 1875:
+                        duration = 1875 - (alen * 2) + alen
+                    else:
+                        #duration = alen
+                        duration = 1875
+
+                    silence = AudioSegment.silent(duration = duration)
                     all = all + audio + silence
 
                     all = all + audio + silence # 同じ音声を2回再生する

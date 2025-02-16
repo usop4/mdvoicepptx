@@ -30,7 +30,7 @@ def extract_verb_stems(text):
         
         # 動詞であるかを確認
         if original_pos == 'Verb' and stem_pos == 'Verb':
-            verbs.append(f"{original_word} ({stem_word})")  # (そのままの形, 原形)
+            verbs.append(f" {original_word} ({stem_word})")  # (そのままの形, 原形)
     
     return "\n".join(verbs)
 
