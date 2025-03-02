@@ -9,7 +9,6 @@ import fire
 from icecream import ic
 
 from langchain_ollama import ChatOllama
-import os
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
@@ -43,7 +42,8 @@ def make_comment(s,model_type):
 
         system_message = """
 この韓国語の文を２〜５センテンス程度で区切って、それぞれをコンパクトに解説してください。
-出力は出力例のように書いてください。カッコや数字、ハイフン、箇条書きは不要です。
+出力は出力例のように書いてください。日本語は韓国語と語順を変えず直訳してください。
+カッコや数字、ハイフン、箇条書きは付けないでください。
 
 * 出力例
 살짝 웜톤으로 少し暖かい色調で  
@@ -65,6 +65,21 @@ def is_korean(text):
     for char in text:
         # Check if the character is in the Hangul unicode range
         if '\uAC00' <= char <= '\uD7A3':
+            return True
+    return False
+
+def start_with_korean(text):
+    if len(text) > 0:
+        first_char = text[0]
+        # Check if the first character is in the Hangul unicode range
+        if '\uAC00' <= first_char <= '\uD7A3':
+            return True
+    return False
+
+def is_japanese(text):
+    for char in text:
+        # Check if the character is in the Hangul unicode range
+        if ('\u3040' <= char <= '\u309F') or ('\u30A0' <= char <= '\u30FF') or ('\u4E00' <= char <= '\u9FFF'):
             return True
     return False
 
@@ -95,23 +110,30 @@ def command(lang="ko", model="openai"):
         lines = file.readlines()
     
     i = 0
+    res = ""
     while i < len(lines):
-        flag = False
+        koflag = False
+        jaflag = False
 
-        if lang=="ko" and is_korean(lines[i]):
-            flag = True
+        if lang=="ko":
+            if is_korean(lines[i]):
+                koflag = True
+            if is_japanese(lines[i]):
+                koflag = False
+                jaflag = True
 
         if is_space(lines[i]):
-            flag = False
-        if is_comment(lines[i]):
-            flag = False
+            koflag = False
         if is_cached(lines[i]):
-            flag = False
+            koflag = False
 
-        if flag:
-            res = make_comment(lines[i],model)
+        if koflag:
+            res = make_comment(lines[i].replace('# ',''),model)
+
+        if jaflag and res != "":
             res = insert_space(res)
             lines.insert(i + 1,res+'\n')
+            res = ""
             i += 1
         i += 1
 
