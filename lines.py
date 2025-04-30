@@ -7,30 +7,16 @@
 # --sharpオプションを指定すると、行頭に「#」を追加する
 # --noteオプションを指定すると、行頭に「>」を追加する
 
+import re
 import fire
+
 from icecream import ic
 
-def is_korean(text):
-    for char in text:
-        # Check if the character is in the Hangul unicode range
-        if '\uAC00' <= char <= '\uD7A3':
-            return True
-    return False
+from mylib import *
 
-def start_with_korean(text):
-    if len(text) > 0:
-        first_char = text[0]
-        # Check if the first character is in the Hangul unicode range
-        if '\uAC00' <= first_char <= '\uD7A3':
-            return True
-    return False
+def lines(fname="scenario.md",note=False,sharp=True):
 
-def is_space(text):
-    return text.startswith(' ')
-
-def lines(note=False,sharp=False):
-
-    fname = "scenario.md"
+    #fname = "scenario.md"
     with open(fname, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
@@ -38,19 +24,37 @@ def lines(note=False,sharp=False):
     new_lines = []
     for line in lines:
 
+        line = line.replace('3級', ' 3級')
+
         # タブを改行に変換
         line = line.replace('\t', '\n')
+
+        # 空白２つ以上を１つに変換
+        line = line.replace('　', ' ')
+        while '  ' in line:  # 空白2つが存在する間繰り返す
+            line = line.replace('  ', ' ')
+
+        # 感嘆など削除
+        line = line.replace('아, ', '')
+        line = line.replace('아휴, ', '')
+        line = line.replace('야, ', '')
+        line = line.replace('아이, ', '')
+
+
+        # []で囲まれた文字を削除
+        line = re.sub(r'\[.*?\]', '', line)
+
 
         # noteがTrueの場合、行頭に「>」を追加
         if note:
             if line.startswith(' '):
                 line = ">" + line
 
-        # sharpがTrueの場合、行頭に「#」を追加
+        # sharpがTrueで韓国語の場合、行頭に「#」を追加
         if sharp:
             sharp_flag = False
 
-            if start_with_korean(line):
+            if is_start_with_korean(line):
                 sharp_flag = True
 
             if sharp_flag:
@@ -62,6 +66,7 @@ def lines(note=False,sharp=False):
         new_lines.append(line)
 
         new_lines.append("\n")
+
 
     # 空行が2つ以上続く場合、1つにまとめる
     i = 0

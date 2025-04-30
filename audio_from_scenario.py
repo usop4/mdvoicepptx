@@ -31,13 +31,6 @@ def make_safe_slow_fname(text):
     safe_text = safe_text.replace('\n', '_').replace('\r', '_')
     return "cache/" + f"{safe_text}" + "_slow.mp3"
 
-def is_korean(text):
-    for char in text:
-        # Check if the character is in the Hangul unicode range
-        if '\uAC00' <= char <= '\uD7A3':
-            return True
-    return False
-
 def openai_tts(text,voice):
 
     fname = make_safe_fname(text)
@@ -49,6 +42,7 @@ def openai_tts(text,voice):
     else:
         response = client.audio.speech.create(
             model="tts-1",
+            # model="gpt-4o-mini-tts",
             voice=voice,
             input=text
         )

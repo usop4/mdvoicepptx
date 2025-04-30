@@ -18,6 +18,8 @@ os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_KEY')
 
 from langchain_core.messages import AIMessage
 
+from mylib import *
+
 def make_safe_fname(text):
     safe_text = re.sub(r'[\\/:*?"<>|]', '_', text)
     safe_text = safe_text.replace('\n', '_').replace('\r', '_')
@@ -41,7 +43,9 @@ def make_comment(s,model_type):
         llm = model_init(model_type)
 
         system_message = """
-この韓国語の文を２〜５センテンス程度で区切って、それぞれをコンパクトに解説してください。
+韓国語の学習者にとって、理解しやすいように
+この韓国語の文を２〜４センテンスごとに意味のある区切りで分割し、
+それぞれのセンテンスをコンパクトに解説してください。
 出力は出力例のように書いてください。日本語は韓国語と語順を変えず直訳してください。
 カッコや数字、ハイフン、箇条書きは付けないでください。
 
@@ -60,34 +64,6 @@ def make_comment(s,model_type):
         with open(fname, 'w', encoding='utf-8') as file:
             file.write(ai_msg.content)
         return ai_msg.content
-
-def is_korean(text):
-    for char in text:
-        # Check if the character is in the Hangul unicode range
-        if '\uAC00' <= char <= '\uD7A3':
-            return True
-    return False
-
-def start_with_korean(text):
-    if len(text) > 0:
-        first_char = text[0]
-        # Check if the first character is in the Hangul unicode range
-        if '\uAC00' <= first_char <= '\uD7A3':
-            return True
-    return False
-
-def is_japanese(text):
-    for char in text:
-        # Check if the character is in the Hangul unicode range
-        if ('\u3040' <= char <= '\u309F') or ('\u30A0' <= char <= '\u30FF') or ('\u4E00' <= char <= '\u9FFF'):
-            return True
-    return False
-
-def is_space(text):
-    return text.startswith(' ')
-
-def is_comment(text):
-    return text.startswith('#')
 
 def is_cached(text):
     fname = make_safe_fname(text)
