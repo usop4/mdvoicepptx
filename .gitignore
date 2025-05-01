@@ -186,3 +186,11 @@ test_*.py
 /cache
 /myenv
 /.vscode
+
+*.bin
+*.db
+*.spdpro
+*.wav
+*.mp4
+
+netflix/
