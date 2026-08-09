@@ -5,6 +5,10 @@ import re
 from konlpy.tag import Okt
 from hanja import hangul
 
+jamo_vowels = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ','ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ','ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+jamo_initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ','ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+jamo_patchim = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+
 
 def hello():
     """
@@ -13,7 +17,7 @@ def hello():
     print("Hello World")
 
 def convert_to_stem_sentence(text,debug=False):
-    patchim_list=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+    patchim_list = jamo_patchim
 
     okt = Okt()
     original_morphs = okt.pos(text, stem=False)
@@ -161,3 +165,104 @@ def replace_start_with(origin, prefix, replacement=''):
     if origin.startswith(prefix):
         return origin.replace(prefix, replacement, 1)  # 先頭の1回だけ置換
     return origin
+
+# 韓国語の動詞の原型をもとに活用形を生成する（하다のみ）
+def generate_conjugations(word):
+    okt = Okt()
+    morphs = okt.morphs(word)    
+    if len(morphs) > 1:
+        stem = morphs[0]
+        suffix = morphs[1]
+    else:
+        stem = morphs[0]
+        suffix = ""  
+    return [
+        morphs[0] + "한",
+        morphs[0] + "할",
+        morphs[0] + "해",
+        morphs[0] + "했",
+    ]
+
+def analyze_text(text):
+    patchim_list=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+
+    okt = Okt()
+    
+    # そのままの形を取得
+    original_morphs = okt.pos(text, stem=False)
+    
+    # 原形を取得
+    stem_morphs = okt.pos(text, stem=True)
+    
+    s = ""
+    verbs = []
+    for original, stem in zip(original_morphs, stem_morphs):
+        original_word, original_pos = original
+        stem_word, stem_pos = stem
+
+        #print(f"{original_word} - {stem_word} ({original_pos})")        
+
+        if original_pos in ['Verb', 'Adjective']:
+            temp_word = f"{stem_word}/{original_word}"
+
+            try:
+                flag = True
+                temp = original_word.replace(stem_word[:-1], "")
+                #print(temp)
+
+                separated = hangul.separate(temp[0])
+                #print(separated)
+                if len(separated) > 2:
+                    patchim = patchim_list[separated[2]]
+                    if patchim == 'ㄴ':
+                        temp_word = f"{stem_word}/ㄴ{temp[1:]}"
+                        text = text.replace(original_word, temp_word)
+                        flag = False
+                    if patchim == 'ㄹ':
+                        temp_word = f"{stem_word}/ㄹ{temp[1:]}"
+                        text = text.replace(original_word, temp_word)
+                        flag = False
+                if flag:
+                    text = text.replace(original_word, stem_word)
+
+            except Exception as e:
+                # 例外を表示
+                print(original_word)
+                print(temp)
+                print(f"An error occurred: {e}")
+                pass
+
+    return text
+
+
+def is_hangul_syllable(char):
+    return len(char) == 1 and 0xAC00 <= ord(char) <= 0xD7A3
+
+def get_vowel(char):
+    if not is_hangul_syllable(char):
+        return None
+    
+    separated = hangul.separate(char)
+    if len(separated) > 1:
+        vowel_index = separated[1]
+        if 0 <= vowel_index < len(jamo_vowels):
+            return jamo_vowels[vowel_index]
+        else:
+            return None
+    else:
+        return None
+
+def get_initial_and_vowel(char):
+    if not is_hangul_syllable(char):
+        return None, None
+
+    separated = hangul.separate(char)
+    if len(separated) > 1:
+        initial_index = separated[0]
+        vowel_index = separated[1]
+        initial = jamo_initials[initial_index] if 0 <= initial_index < len(jamo_initials) else None
+        vowel = jamo_vowels[vowel_index] if 0 <= vowel_index < len(jamo_vowels) else None
+        return initial, vowel
+    else:
+        return None, None
+
