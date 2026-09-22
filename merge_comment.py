@@ -46,8 +46,8 @@ def merge_comment(s,model_type):
 """
 
     messages = [
-        ("system",system_message),
-        ("human", s),
+        SystemMessage(content=system_message),
+        HumanMessage(content=s),
     ]
     ai_msg = llm.invoke(messages)
     return ai_msg.content

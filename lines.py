@@ -20,6 +20,14 @@ def lines(fname="scenario.md",note=False,sharp=True):
     with open(fname, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
+    front_matter = []
+    if lines and lines[0].strip() == '---':
+        for index in range(1, len(lines)):
+            if lines[index].strip() == '---':
+                front_matter = lines[:index + 1]
+                lines = lines[index + 1:]
+                break
+
     # 各行の間に空行を追加
     new_lines = []
     for line in lines:
@@ -28,6 +36,9 @@ def lines(fname="scenario.md",note=False,sharp=True):
 
         # タブを改行に変換
         line = line.replace('\t', '\n')
+
+        # ゼロ幅スペースを削除
+        line = line.replace('\u200e', '')
 
         # 空白２つ以上を１つに変換
         line = line.replace('　', ' ')
@@ -82,6 +93,8 @@ def lines(fname="scenario.md",note=False,sharp=True):
             # 前の行が空行でないか、現在の行が空行でない場合、次の行へ進む
             previous_line_empty = current_line_empty
             i += 1
+
+    new_lines = front_matter + new_lines
 
     # 処理結果をファイルに書き込む
     with open(fname, 'w', encoding='utf-8') as file:

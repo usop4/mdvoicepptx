@@ -11,10 +11,12 @@ from icecream import ic
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from dotenv import load_dotenv
 load_dotenv('config.env')
 os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_KEY')
+os.environ["GOOGLE_API_KEY"] = os.getenv('GOOGLE_KEY')
 
 from langchain_core.messages import AIMessage
 
@@ -30,6 +32,10 @@ def model_init(model_type):
         return ChatOllama(model="llama3.2")
     elif model_type == "openai":
         return ChatOpenAI(model="gpt-4o-mini", max_tokens=200)
+    elif model_type == "gpt-5-mini":
+        return ChatOpenAI(model="gpt-5.4-mini")
+    elif model_type == "gemini":
+        return ChatGoogleGenerativeAI(model="gemini-2.0-flash")
     else:
         raise ValueError("Unsupported model type. Use 'ollama' or 'openai'.")
 
@@ -45,8 +51,8 @@ def make_comment(s,model_type):
         system_message = """
 韓国語の学習者にとって、理解しやすいように
 この韓国語の文を２〜４センテンスごとに意味のある区切りで分割し、
-それぞれのセンテンスをコンパクトに解説してください。
-出力は出力例のように書いてください。日本語は韓国語と語順を変えず直訳してください。
+出力例のように、それぞれ１行ごとに直訳し韓国語と日本語で表記してください
+元の文に含まれていない韓国語を追加しないでください。
 カッコや数字、ハイフン、箇条書きは付けないでください。
 
 * 出力例
@@ -57,8 +63,8 @@ def make_comment(s,model_type):
 """
 
         messages = [
-            ("system",system_message),
-            ("human", s),
+            SystemMessage(content=system_message),
+            HumanMessage(content=s),
         ]
         ai_msg = llm.invoke(messages)
         with open(fname, 'w', encoding='utf-8') as file:
@@ -77,7 +83,7 @@ def insert_space(text):
     lines = [" " + line for line in lines]
     return '\n'.join(lines)
 
-def command(lang="ko", model="openai"):
+def command(lang="ko", model="gpt-5-mini"):
     print(f"lang={lang}, model={model}")
 
     temp = ""
@@ -103,7 +109,11 @@ def command(lang="ko", model="openai"):
         if is_cached(lines[i]):
             koflag = False
 
+        if len(lines[i]) < 6:
+            koflag = False
+
         if koflag:
+            print(lines[i])
             res = make_comment(lines[i].replace('# ',''),model)
 
         if jaflag and res != "":

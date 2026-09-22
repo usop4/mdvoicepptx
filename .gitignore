@@ -184,13 +184,19 @@ test_*.py
 /scenario
 /material
 /cache
-/myenv
+/venv
 /.vscode
+/trial
 
 *.bin
 *.db
 *.spdpro
 *.wav
 *.mp4
+*.mp3
 
 netflix/
+netflix_old/
+
+*.tsv
+

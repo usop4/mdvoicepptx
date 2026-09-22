@@ -1,0 +1,2 @@
+rm youtube/*
+rm cache/*
