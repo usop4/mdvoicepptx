@@ -107,24 +107,17 @@ def run_ffmpeg(images, audio_paths, output_path, fps=30):
 		lines.append(f"file '{images[-1].resolve()}'")
 		concat_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-		audio_concat_path = Path(temp_dir) / "audio.txt"
-		audio_concat_path.write_text(
-			"\n".join(f"file '{path.resolve()}'" for path in audio_paths) + "\n",
-			encoding="utf-8",
-		)
-		combined_audio = Path(temp_dir) / "audio.mp3"
-		subprocess.run(
-			[ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(audio_concat_path), "-c:a", "libmp3lame", str(combined_audio)],
-			check=True,
-			stdout=subprocess.DEVNULL,
-			stderr=subprocess.PIPE,
-		)
+		combined_audio = Path(temp_dir) / "audio.wav"
+		combined_segment = AudioSegment.empty()
+		for audio_path in audio_paths:
+			combined_segment += AudioSegment.from_file(audio_path, format="wav")
+		combined_segment.export(combined_audio, format="wav")
 		output_path.parent.mkdir(parents=True, exist_ok=True)
 		subprocess.run(
 			[
 				ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(concat_path),
 				"-i", str(combined_audio), "-map", "0:v:0", "-map", "1:a:0",
-				"-r", str(fps), "-c:v", "libx264", "-pix_fmt", "yuv420p",
+				"-fps_mode", "vfr", "-c:v", "libx264", "-pix_fmt", "yuv420p",
 				"-c:a", "aac", "-shortest", str(output_path),
 			],
 			check=True,
@@ -167,8 +160,8 @@ def command(
 	with tempfile.TemporaryDirectory(prefix="make_mp4_audio_") as temp_dir:
 		audio_paths = []
 		for index, title in enumerate(titles):
-			audio_path = Path(temp_dir) / f"slide_{index + 1:03d}.mp3"
-			make_slide_audio(title, index, cache_path, intro_path).export(audio_path, format="mp3")
+			audio_path = Path(temp_dir) / f"slide_{index + 1:03d}.wav"
+			make_slide_audio(title, index, cache_path, intro_path).export(audio_path, format="wav")
 			audio_paths.append(audio_path)
 		run_ffmpeg(images, audio_paths, Path(output))
 	print(f"動画を生成しました: {output}")
