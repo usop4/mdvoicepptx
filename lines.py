@@ -14,6 +14,17 @@ from icecream import ic
 
 from mylib import *
 
+TIME_ONLY_PATTERN = re.compile(r'^\s*(?:\d{1,2}:)?\d{1,2}:\d{2}(?::\d{2})?\s*$')
+
+
+def is_time_only(line):
+    return TIME_ONLY_PATTERN.fullmatch(line) is not None
+
+
+def is_korean_only(line):
+    return is_korean(line) and not is_japanese(line)
+
+
 def lines(fname="scenario.md",note=False,sharp=True):
 
     #fname = "scenario.md"
@@ -31,6 +42,15 @@ def lines(fname="scenario.md",note=False,sharp=True):
     # 各行の間に空行を追加
     new_lines = []
     for line in lines:
+
+        if line.startswith('#'):
+            line = re.sub(r'^#[ \t　]+#(?:[ \t　]+#)*[ \t　]*', '# ', line)
+            new_lines.append(line)
+            new_lines.append("\n")
+            continue
+
+        if is_time_only(line):
+            continue
 
         line = line.replace('3級', ' 3級')
 
@@ -63,12 +83,7 @@ def lines(fname="scenario.md",note=False,sharp=True):
 
         # sharpがTrueで韓国語の場合、行頭に「#」を追加
         if sharp:
-            sharp_flag = False
-
-            if is_start_with_korean(line):
-                sharp_flag = True
-
-            if sharp_flag:
+            if is_korean_only(line):
                 line = "# " + line
 
         if not is_space(line):

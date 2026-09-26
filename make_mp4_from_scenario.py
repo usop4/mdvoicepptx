@@ -39,10 +39,11 @@ def openai_tts(text, voice="alloy", cache_dir=PROJECT_DIR / "cache"):
 
 	client = OpenAI(api_key=api_key)
 	response = client.audio.speech.create(
-		model="tts-1", 
-		voice=voice, 
+		model="gpt-4o-mini-tts",
+		voice=voice,
 		input=text,
-		speed=1.0)
+		instructions="韓国語の学習に使えるよう、はっきりと発音してください",
+)
 	audio = AudioSegment.from_file(io.BytesIO(response.content), format="mp3")
 	audio.export(cache_path, format="mp3")
 	return audio
