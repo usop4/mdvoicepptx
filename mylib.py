@@ -17,6 +17,9 @@ def hello():
     print("Hello World")
 
 def convert_to_stem_sentence(text,debug=False):
+    """
+    文中の動詞・形容詞を原型に置き換え、パッチムに応じた活用語尾を付加する
+    """
     patchim_list = jamo_patchim
 
     okt = Okt()
@@ -107,6 +110,9 @@ def extract_verbs_with_stems(text):
     return "\n".join(verbs)
 
 def is_korean(text):
+    """
+    テキストにハングル文字が1文字でも含まれるか判定する
+    """
     for char in text:
         # Check if the character is in the Hangul unicode range
         if '\uAC00' <= char <= '\uD7A3':
@@ -114,6 +120,9 @@ def is_korean(text):
     return False
 
 def is_start_with_korean(text):
+    """
+    テキストの先頭がハングル文字かどうかを判定する
+    """
     if len(text) > 0:
         first_char = text[0]
         # Check if the first character is in the Hangul unicode range
@@ -122,6 +131,9 @@ def is_start_with_korean(text):
     return False
 
 def is_japanese(text):
+    """
+    テキストに日本語文字（ひらがな・カタカナ・漢字）が含まれるか判定する
+    """
     for char in text:
         # Check if the character is in the Hangul unicode range
         if ('\u3040' <= char <= '\u309F') or ('\u30A0' <= char <= '\u30FF') or ('\u4E00' <= char <= '\u9FFF'):
@@ -129,12 +141,35 @@ def is_japanese(text):
     return False
 
 def is_space(text):
+    """
+    行が空白（半角スペース）で始まるかどうかを判定する
+    """
     return text.startswith(' ')
 
 def is_start_with_sharp(text):
+    """
+    行がMarpの見出しマーカー「#」で始まるかどうかを判定する
+    """
     return text.startswith('#')
 
+def make_safe_fname(text):
+    """
+    テキストからファイルシステムで使えないパスにして、cache/以下の.txtパスを組み立てる
+    """
+    safe_text = re.sub(r'[\\/:*?"<>|]', '_', text)
+    safe_text = safe_text.replace('\n', '_').replace('\r', '_')
+    return "cache/" + f"{safe_text}.txt"
+
+def insert_space(text):
+    """
+    各行の先頭に半角スペースを付け、scenario.mdの注釈行の書式に合わせる
+    """
+    return '\n'.join(" " + line for line in text.split('\n'))
+
 def checkPatchim(s,sub):
+  """
+  "パッチム 単語"形式のsubを受け取り、sで単語の直前の文字が指定パッチムを持つか判定する
+  """
   patchim_list=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
   if " " in sub:
     patchim,sub2 = sub.split(" ")
@@ -184,6 +219,9 @@ def generate_conjugations(word):
     ]
 
 def analyze_text(text):
+    """
+    convert_to_stem_sentenceと同様に動詞・形容詞を原型化するが、\ㄹ以外のパッチムは無条件で原型に置き換える簡易版
+    """
     patchim_list=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 
     okt = Okt()
@@ -236,9 +274,15 @@ def analyze_text(text):
 
 
 def is_hangul_syllable(char):
+    """
+    1文字がハングルの完成形音節文字かどうかを判定する
+    """
     return len(char) == 1 and 0xAC00 <= ord(char) <= 0xD7A3
 
 def get_vowel(char):
+    """
+    ハングル音節文字から中声（母音）の字母を取り出す
+    """
     if not is_hangul_syllable(char):
         return None
     
@@ -253,6 +297,9 @@ def get_vowel(char):
         return None
 
 def get_initial_and_vowel(char):
+    """
+    ハングル音節文字から初声（子音）と中声（母音）の字母を取り出す
+    """
     if not is_hangul_syllable(char):
         return None, None
 

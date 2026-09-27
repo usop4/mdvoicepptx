@@ -155,6 +155,16 @@ OpenAI APIキーは `config.env` の `OPENAI_KEY` から読み込む。音声処
 - 照合時は空白を除去して比較する。一致する字幕がない場合はその旨を表示する
 - 関数はChromaDBの検索結果も返すため、後続セルで利用できる
 
+### `mylib.py`
+
+各スクリプトから共通で使われるユーティリティ関数をまとめたモジュール。`from mylib import *` で読み込む。
+
+- 韓国語・日本語の文字種判定: `is_korean`、`is_start_with_korean`、`is_japanese`
+- `scenario.md` の整形補助: `is_space`、`is_start_with_sharp`、`replace_start_with`
+- `insert_comments.py`・`comment_from_llm.py` 共通のキャッシュ処理: `make_safe_fname`（入力文からcache/以下の`.txt`パスを作る）、`insert_space`（各行の先頭に空白を付けて`scenario.md`の注釈行の書式に合わせる）
+- 形態素解析（`konlpy`のOkt）を使った韓国語処理: `convert_to_stem_sentence`、`convert_to_stem_sentence_simple`、`extract_verbs_with_stems`、`generate_conjugations`、`analyze_text`
+- ハングルのパッチム（終声）・字母分解: `checkPatchim`、`is_hangul_syllable`、`get_vowel`、`get_initial_and_vowel`
+
 ## 4. 共通ファイルと依存関係
 
 - 入力シナリオ: `scenario.md`

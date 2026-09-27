@@ -7,21 +7,10 @@ cache/ に書き込んだ後、このスクリプトを再実行して scenario.
 """
 
 import os
-import re
 
-from mylib import is_korean, is_japanese, is_space
+from mylib import is_korean, is_japanese, is_space, make_safe_fname, insert_space
 
 FNAME = "scenario.md"
-
-
-def make_safe_fname(text):
-    safe_text = re.sub(r'[\\/:*?"<>|]', '_', text)
-    safe_text = safe_text.replace('\n', '_').replace('\r', '_')
-    return "cache/" + f"{safe_text}.txt"
-
-
-def insert_space(text):
-    return '\n'.join(" " + line for line in text.split('\n'))
 
 
 def is_heading(line):

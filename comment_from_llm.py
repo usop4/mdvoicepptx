@@ -22,11 +22,6 @@ from langchain_core.messages import AIMessage
 
 from mylib import *
 
-def make_safe_fname(text):
-    safe_text = re.sub(r'[\\/:*?"<>|]', '_', text)
-    safe_text = safe_text.replace('\n', '_').replace('\r', '_')
-    return "cache/" + f"{safe_text}.txt"
-
 def model_init(model_type):
     if model_type == "ollama":
         return ChatOllama(model="llama3.2")
@@ -114,11 +109,6 @@ def is_cached(text):
         return True
     else:
         return False
-
-def insert_space(text):
-    lines = text.split('\n')
-    lines = [" " + line for line in lines]
-    return '\n'.join(lines)
 
 def command(lang="ko", model="gpt-6-luna"):
     print(f"lang={lang}, model={model}")

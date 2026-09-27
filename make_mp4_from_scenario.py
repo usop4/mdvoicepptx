@@ -91,7 +91,7 @@ def make_slide_audio(title, index, cache_dir, intro_path):
 	return segment
 
 
-def run_ffmpeg(images, audio_paths, output_path, fps=30):
+def run_ffmpeg(images, audio_paths, output_path, fps=30, max_width=1280, crf=28, preset="slow"):
 	ffmpeg = shutil.which("ffmpeg")
 	if not ffmpeg:
 		raise RuntimeError("ffmpegが見つかりません。FFmpegをインストールしてください。")
@@ -114,12 +114,16 @@ def run_ffmpeg(images, audio_paths, output_path, fps=30):
 			combined_segment += AudioSegment.from_file(audio_path, format="wav")
 		combined_segment.export(combined_audio, format="wav")
 		output_path.parent.mkdir(parents=True, exist_ok=True)
+		# max_widthより大きい場合のみ縮小し、拡大はしない
+		scale_filter = f"scale='min(iw,{max_width})':-2"
 		subprocess.run(
 			[
 				ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(concat_path),
 				"-i", str(combined_audio), "-map", "0:v:0", "-map", "1:a:0",
+				"-vf", scale_filter,
 				"-fps_mode", "vfr", "-c:v", "libx264", "-pix_fmt", "yuv420p",
-				"-c:a", "aac", "-shortest", str(output_path),
+				"-preset", preset, "-crf", str(crf), "-tune", "stillimage",
+				"-c:a", "aac", "-b:a", "128k", "-shortest", str(output_path),
 			],
 			check=True,
 			stdout=subprocess.DEVNULL,
@@ -145,6 +149,9 @@ def command(
 	image_dir="scenario",
 	output="scenario/scenario.mp4",
 	cache_dir="cache",
+	max_width=1280,
+	crf=28,
+	preset="slow",
 ):
 	scenario_path = Path(scenario)
 	titles = parse_titles(scenario_path)
@@ -164,7 +171,7 @@ def command(
 			audio_path = Path(temp_dir) / f"slide_{index + 1:03d}.wav"
 			make_slide_audio(title, index, cache_path, intro_path).export(audio_path, format="wav")
 			audio_paths.append(audio_path)
-		run_ffmpeg(images, audio_paths, Path(output))
+		run_ffmpeg(images, audio_paths, Path(output), max_width=max_width, crf=crf, preset=preset)
 	print(f"動画を生成しました: {output}")
 
 
