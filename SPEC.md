@@ -102,6 +102,25 @@ YouTubeの文字起こしテキストと `netflix/*.tsv` の韓国語字幕を�
 
 APIキーは `config.env` の `OPENAI_KEY` または `GOOGLE_KEY` から読み込む。LLMを再実行するときも、既存キャッシュは優先して利用される。
 
+### `insert_comments.py`
+
+`comment_from_llm.py` の代替。外部LLM APIを呼ばず、GitHub Copilotのエージェントモード（`hangul-comment` スキル）に対訳生成を任せる構成のうち、決定的な部分だけを担当する。
+
+- 対象行の判定は `comment_from_llm.py` と同じ（韓国語行、6文字以上、空白行でない、日本語行でない）
+- `cache/` に対応する `.txt` が既にあり、まだ `scenario.md` に挿入されていない見出しがあれば、その内容を直後の日本語行の下に挿入する
+- `cache/` が無い見出しは対訳を生成せず、`cache_fname<TAB>本文` の一覧を標準出力に表示するだけ（生成は行わない）
+- LLM呼び出しやAPIキーは不要。何度実行しても、既に挿入済みの行を重複挿入しない
+
+`hangul-comment` スキル（`.github/skills/hangul-comment/SKILL.md`）が次の手順でこのスクリプトを使う。
+
+1. `python3 insert_comments.py` を実行し、「未生成の行」一覧を得る
+2. 一覧の各文について、Copilotがスキルに書かれた対訳フォーマットのルールに従って自分で対訳を生成する
+3. 生成結果を、一覧に出力された `cache_fname` にそのまま書き込む
+4. 再度 `python3 insert_comments.py` を実行し、`scenario.md` へ反映する
+5. 「未生成の行はありません。」と表示されるまで2〜4を繰り返す
+
+エージェントモードで「hangul-comment スキルを使って scenario.md の対訳コメントを埋めて」のように頼むと、この手順が実行される。
+
 ### `pptx_from_scenario.sh`
 
 `scenario.md` を `panflute_filter.py` で変換し、Pandocで `scenario.pptx` を生成して開く。

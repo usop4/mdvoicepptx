@@ -34,6 +34,8 @@ def model_init(model_type):
         return ChatOpenAI(model="gpt-4o-mini", max_tokens=200)
     elif model_type == "gpt-5-mini":
         return ChatOpenAI(model="gpt-5.4-mini")
+    elif model_type == "gpt-6-luna":
+        return ChatOpenAI(model="gpt-6-luna")
     elif model_type == "gemini":
         return ChatGoogleGenerativeAI(model="gemini-2.0-flash")
     else:
@@ -118,7 +120,7 @@ def insert_space(text):
     lines = [" " + line for line in lines]
     return '\n'.join(lines)
 
-def command(lang="ko", model="gpt-5-mini"):
+def command(lang="ko", model="gpt-6-luna"):
     print(f"lang={lang}, model={model}")
 
     temp = ""
