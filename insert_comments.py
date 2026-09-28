@@ -34,19 +34,23 @@ def main():
             text = lines[i].replace('# ', '').strip()
             cache_fname = make_safe_fname(text)
 
-            # 見出しの次に現れる日本語行を対訳として扱う
+            # 見出しの次から次の見出しまでを検索範囲にする
             j = i + 1
-            while j < len(lines) and not is_japanese(lines[j]):
+            while j < len(lines) and not is_heading(lines[j]) and not is_japanese(lines[j]):
                 j += 1
 
-            if j < len(lines):
-                if os.path.exists(cache_fname):
-                    if not already_has_comment(lines, j):
-                        with open(cache_fname, 'r', encoding='utf-8') as cf:
-                            comment = cf.read()
-                        lines.insert(j + 1, insert_space(comment) + '\n')
-                else:
-                    pending.append((cache_fname, text))
+            has_japanese_line = j < len(lines) and is_japanese(lines[j])
+            if not os.path.exists(cache_fname):
+                pending.append((cache_fname, text))
+            elif has_japanese_line:
+                if not already_has_comment(lines, j):
+                    with open(cache_fname, 'r', encoding='utf-8') as cf:
+                        comment = cf.read()
+                    lines.insert(j + 1, insert_space(comment) + '\n')
+            else:
+                with open(cache_fname, 'r', encoding='utf-8') as cf:
+                    comment = cf.read()
+                lines[i + 1:i + 1] = ['\n', insert_space(comment) + '\n']
         i += 1
 
     with open(FNAME, 'w', encoding='utf-8') as f:
