@@ -1,3 +1,5 @@
+import glob
+import os
 import re
 from functools import lru_cache
 
@@ -318,3 +320,72 @@ def get_initial_and_vowel(char):
         return initial, vowel
     else:
         return None, None
+
+def search_subtitles(q, netflix_dir=None):
+    """
+    字幕ファイルを検索し出力する
+    """
+    if netflix_dir is None:
+        netflix_dir = os.path.abspath(os.path.join(os.getcwd(), "netflix"))
+
+    queries = [
+        (line.strip(), line[0].isspace())
+        for line in q.splitlines()
+        if line.strip()
+    ]
+    if not queries:
+        raise ValueError("qに検索語を入力してください。")
+
+    q_lines = [line for line, _ in queries]
+    q_requires_boundary = [requires_boundary for _, requires_boundary in queries]
+    stem_cache = {}
+
+    def get_stem(text):
+        if text not in stem_cache:
+            stem_cache[text] = convert_to_stem_sentence(text)
+        return stem_cache[text]
+
+    q_stems = [get_stem(line) for line in q_lines]
+    found_queries = set()
+
+    def sheet_sort_key(path):
+        match = re.search(r"(\d+)\.tsv$", path)
+        return int(match.group(1)) if match else 0
+
+    for tsv_path in sorted(
+        glob.glob(os.path.join(netflix_dir, "*.tsv")),
+        key=sheet_sort_key,
+    ):
+        with open(tsv_path, encoding="utf-8") as f:
+            for raw_row in f:
+                row = raw_row.rstrip("\r\n")
+                cols = row.split("\t")
+                if len(cols) < 2 or not cols[1]:
+                    continue
+
+                subtitle_stem = get_stem(cols[1])
+                matched = [
+                    q_line
+                    for q_line, q_stem, requires_boundary in zip(
+                        q_lines, q_stems, q_requires_boundary
+                    )
+                    if (
+                        re.search(rf"(?<!\S){re.escape(q_stem)}", subtitle_stem)
+                        is not None
+                        if requires_boundary
+                        else q_stem in subtitle_stem
+                    )
+                ]
+
+                if matched:
+                    display_row = row.replace("\t", " ", 1)
+                    result = (
+                        f"{display_row} ({','.join(matched)}) "
+                        f"{os.path.basename(tsv_path)}"
+                    )
+                    print(result, flush=True)
+                    found_queries.update(matched)
+
+    for q_line in q_lines:
+        if q_line not in found_queries:
+            print(f"【{q_line}】該当なし")
