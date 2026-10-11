@@ -148,12 +148,15 @@ OpenAI APIキーは `config.env` の `OPENAI_KEY` から読み込む。音声処
 
 ### `trial/test_rag.ipynb`
 
-`../netflix/` の字幕TSVを分割・ベクトル化してChromaDBに登録し、質問文に類似する字幕テキストを検索する実験用ノートブック。
+`../netflix/` の字幕TSVをChromaDBに登録し、質問文に類似する字幕テキストを検索する実験用ノートブック。DBは `trial/chroma_db/` に永続化される。
 
-- `search_and_display(query, n_results=5)` が質問を表示し、ChromaDBの検索結果を上位から出力する
-- 各結果の先頭行を字幕TSVと照合し、元ファイル名とタイムスタンプを結果本文の前に表示する
-- 照合時は空白を除去して比較する。一致する字幕がない場合はその旨を表示する
+- 字幕TSVを初めて登録するとき、または字幕を追加・変更・削除したときだけ `update_subtitles()` を実行する
+- 更新処理はTSVごとのハッシュを比較し、変更されたファイルだけベクトル化して登録する。削除済みファイルのデータもChromaDBから削除する
+- 字幕本文は複数行のチャンクにまとめ、元ファイル名・チャンク開始位置のタイムスタンプをメタデータとして保存する
+- `search_and_display(query, n_results=5)` は永続化済みのコレクションだけを検索し、保存済みメタデータと検索結果を表示する。検索時に字幕TSVは読み込まない
 - 関数はChromaDBの検索結果も返すため、後続セルで利用できる
+- `test_chroma.go` はGo製CLI。Chromaサーバーを起動せず、Python subprocessから `PersistentClient` で同じコレクションを直接検索する。リポジトリルートで `go run ./trial/test_chroma.go -query "장사"` を実行する
+- Go CLIはPythonの `sentence-transformers` で同じ埋め込みモデルを使う。既定ではリポジトリの `venv` を探し、必要に応じて `-python` または `RAG_PYTHON` で実行環境を指定する。DBの既定パスは `trial/chroma_db`（またはカレントディレクトリの `chroma_db`）で、`-db` で変更できる
 
 ### `mylib.py`
 

@@ -1,6 +1,7 @@
-import hanja
-
 import re
+from functools import lru_cache
+
+import hanja
 
 from konlpy.tag import Okt
 from hanja import hangul
@@ -8,6 +9,11 @@ from hanja import hangul
 jamo_vowels = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ','ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ','ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
 jamo_initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ','ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 jamo_patchim = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+
+
+@lru_cache(maxsize=1)
+def _get_okt() -> Okt:
+    return Okt()
 
 
 def hello():
@@ -22,7 +28,7 @@ def convert_to_stem_sentence(text,debug=False):
     """
     patchim_list = jamo_patchim
 
-    okt = Okt()
+    okt = _get_okt()
     original_morphs = okt.pos(text, stem=False)
     stem_morphs = okt.pos(text, stem=True)
     
@@ -69,7 +75,7 @@ def convert_to_stem_sentence_simple(text):
     """
     文を形態素解析し、動詞や形容詞を原型に変換した文を生成する
     """
-    okt = Okt()
+    okt = _get_okt()
     
     # 原型を取得
     morphs = okt.pos(text, stem=True)
@@ -90,7 +96,7 @@ def extract_verbs_with_stems(text):
         str: 動詞のそのままの形と原形を改行区切りで含む文字列。
              例: "먹었어요 (먹다)\n했어요 (하다)"
     """
-    okt = Okt()
+    okt = _get_okt()
     
     # そのままの形を取得
     original_morphs = okt.pos(text, stem=False)
@@ -203,7 +209,7 @@ def replace_start_with(origin, prefix, replacement=''):
 
 # 韓国語の動詞の原型をもとに活用形を生成する（하다のみ）
 def generate_conjugations(word):
-    okt = Okt()
+    okt = _get_okt()
     morphs = okt.morphs(word)    
     if len(morphs) > 1:
         stem = morphs[0]
@@ -224,7 +230,7 @@ def analyze_text(text):
     """
     patchim_list=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅐ','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 
-    okt = Okt()
+    okt = _get_okt()
     
     # そのままの形を取得
     original_morphs = okt.pos(text, stem=False)
@@ -312,4 +318,3 @@ def get_initial_and_vowel(char):
         return initial, vowel
     else:
         return None, None
-

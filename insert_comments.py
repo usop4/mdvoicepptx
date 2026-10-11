@@ -40,8 +40,21 @@ def main():
                 j += 1
 
             has_japanese_line = j < len(lines) and is_japanese(lines[j])
+            first_content = i + 1
+            while first_content < len(lines) and not is_heading(lines[first_content]) and not lines[first_content].strip():
+                first_content += 1
+            has_existing_comment = (
+                first_content < len(lines)
+                and not is_heading(lines[first_content])
+                and is_space(lines[first_content])
+                and is_korean(lines[first_content])
+                and is_japanese(lines[first_content])
+            )
+
             if not os.path.exists(cache_fname):
                 pending.append((cache_fname, text))
+            elif has_existing_comment:
+                pass
             elif has_japanese_line:
                 if not already_has_comment(lines, j):
                     with open(cache_fname, 'r', encoding='utf-8') as cf:

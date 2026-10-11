@@ -52,8 +52,6 @@ def lines(fname="scenario.md",note=False,sharp=True):
         if is_time_only(line):
             continue
 
-        line = line.replace('3級', ' 3級')
-
         # タブを改行に変換
         line = line.replace('\t', '\n')
 
@@ -64,13 +62,6 @@ def lines(fname="scenario.md",note=False,sharp=True):
         line = line.replace('　', ' ')
         while '  ' in line:  # 空白2つが存在する間繰り返す
             line = line.replace('  ', ' ')
-
-        # 感嘆など削除
-        line = line.replace('아, ', '')
-        line = line.replace('아휴, ', '')
-        line = line.replace('야, ', '')
-        line = line.replace('아이, ', '')
-
 
         # []で囲まれた文字を削除
         line = re.sub(r'\[.*?\]', '', line)
